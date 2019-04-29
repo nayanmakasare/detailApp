@@ -14,14 +14,17 @@
 
 package tv.cloudwalker.detailapp;
 
+import android.content.Context;
 import android.graphics.drawable.Drawable;
 import android.support.v17.leanback.widget.ImageCardView;
 import android.support.v17.leanback.widget.Presenter;
 import android.support.v4.content.ContextCompat;
 import android.util.Log;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 
 import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.engine.DiskCacheStrategy;
 
 import model.MovieTile;
 
@@ -31,9 +34,6 @@ import model.MovieTile;
  */
 public class CardPresenter extends Presenter {
     private static final String TAG = "CardPresenter";
-
-    private static final int CARD_WIDTH = 313;
-    private static final int CARD_HEIGHT = 176;
     private static int sSelectedBackgroundColor;
     private static int sDefaultBackgroundColor;
     private Drawable mDefaultCardImage;
@@ -85,13 +85,36 @@ public class CardPresenter extends Presenter {
         Log.d(TAG, "onBindViewHolder");
         if (movie.getPoster() != null) {
             cardView.setTitleText(movie.getTitle());
-            cardView.setMainImageDimensions(CARD_WIDTH, CARD_HEIGHT);
+            int width = dpToPx(viewHolder.view.getContext() , viewHolder.view.getContext().getResources().getInteger(R.integer.tileLandScapeWidth));
+            int height = dpToPx(viewHolder.view.getContext() , viewHolder.view.getContext().getResources().getInteger(R.integer.tileLandScapeHeight));
+            String imageUrl = movie.getPoster();
+            if(movie.getRowLayout().compareToIgnoreCase("square") == 0)
+            {
+                width = dpToPx(viewHolder.view.getContext() , viewHolder.view.getContext().getResources().getInteger(R.integer.tileSquareWidth));
+                height = dpToPx(viewHolder.view.getContext() , viewHolder.view.getContext().getResources().getInteger(R.integer.tileSquareHeight));
+                imageUrl = movie.getPortrait();
+            }else if(movie.getRowLayout().compareToIgnoreCase("portrait") == 0)
+            {
+                width = dpToPx(viewHolder.view.getContext() , viewHolder.view.getContext().getResources().getInteger(R.integer.tilePotraitWidth));
+                height = dpToPx(viewHolder.view.getContext() , viewHolder.view.getContext().getResources().getInteger(R.integer.tilePotraitHeight));
+                imageUrl = movie.getPortrait();
+            }
+            cardView.setMainImageDimensions(width, height);
+            cardView.setMainImageScaleType(ImageView.ScaleType.FIT_XY);
             Glide.with(viewHolder.view.getContext())
-                    .load(movie.getPoster())
-                    .centerCrop()
-                    .error(mDefaultCardImage)
+                    .load(imageUrl)
+                    .override(width, height)
+                    .skipMemoryCache(true)
+                    .diskCacheStrategy(DiskCacheStrategy.NONE)
                     .into(cardView.getMainImageView());
         }
+    }
+
+    private int dpToPx(Context ctx , int dp) {
+        float density = ctx.getResources()
+                .getDisplayMetrics()
+                .density;
+        return Math.round((float) dp * density);
     }
 
     @Override

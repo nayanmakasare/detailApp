@@ -1,12 +1,8 @@
 package fragment;
+
 import android.content.Intent;
-import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Bundle;
-import android.os.Handler;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
-import android.support.v17.leanback.app.BackgroundManager;
 import android.support.v17.leanback.app.BrowseFragment;
 import android.support.v17.leanback.widget.ArrayObjectAdapter;
 import android.support.v17.leanback.widget.FocusHighlight;
@@ -15,23 +11,14 @@ import android.support.v17.leanback.widget.ImageCardView;
 import android.support.v17.leanback.widget.ListRow;
 import android.support.v17.leanback.widget.ListRowPresenter;
 import android.support.v17.leanback.widget.OnItemViewClickedListener;
-import android.support.v17.leanback.widget.OnItemViewSelectedListener;
 import android.support.v17.leanback.widget.Presenter;
 import android.support.v17.leanback.widget.Row;
 import android.support.v17.leanback.widget.RowPresenter;
 import android.support.v4.app.ActivityOptionsCompat;
 import android.support.v4.content.ContextCompat;
-import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.View;
 import android.widget.Toast;
-
-import com.bumptech.glide.Glide;
-import com.bumptech.glide.request.target.SimpleTarget;
-import com.bumptech.glide.request.transition.Transition;
-
-import java.util.Timer;
-import java.util.TimerTask;
 
 import api.ApiClient;
 import api.ApiInterface;
@@ -49,21 +36,10 @@ import tv.cloudwalker.detailapp.R;
 public class MainFragment extends BrowseFragment {
     private static final String TAG = "MainFragment";
 
-    private static final int BACKGROUND_UPDATE_DELAY = 300;
-
-//    private final Handler mHandler = new Handler();
-//    private Drawable mDefaultBackground;
-//    private DisplayMetrics mMetrics;
-//    private Timer mBackgroundTimer;
-//    private String mBackgroundUri;
-//    private BackgroundManager mBackgroundManager;
-
     @Override
     public void onActivityCreated(Bundle savedInstanceState) {
         Log.i(TAG, "onCreate");
         super.onActivityCreated(savedInstanceState);
-
-        prepareBackgroundManager();
 
         setupUIElements();
 
@@ -75,10 +51,6 @@ public class MainFragment extends BrowseFragment {
     @Override
     public void onDestroy() {
         super.onDestroy();
-//        if (null != mBackgroundTimer) {
-//            Log.d(TAG, "onDestroy: " + mBackgroundTimer.toString());
-//            mBackgroundTimer.cancel();
-//        }
     }
 
     private void loadRows() {
@@ -101,7 +73,10 @@ public class MainFragment extends BrowseFragment {
                     for(MovieRow movieRow : movieResponse.getRows())
                     {
                         ArrayObjectAdapter arrayObjectAdapter = new ArrayObjectAdapter(new CardPresenter());
-                        arrayObjectAdapter.addAll(0,movieRow.getRowItems());
+                        for(MovieTile movieTile : movieRow.getRowItems()) {
+                            movieTile.setRowLayout(movieRow.getRowLayout());
+                            arrayObjectAdapter.add(movieTile);
+                        }
                         ListRow listRow = new ListRow(movieRow.getRowIndex(), new HeaderItem(movieRow.getRowHeader()), arrayObjectAdapter);
                         rowsAdapter.add(listRow);
                     }
@@ -119,27 +94,11 @@ public class MainFragment extends BrowseFragment {
         setAdapter(rowsAdapter);
     }
 
-    private void prepareBackgroundManager() {
-
-//        mBackgroundManager = BackgroundManager.getInstance(getActivity());
-//        mBackgroundManager.attach(getActivity().getWindow());
-//
-//        mDefaultBackground = ContextCompat.getDrawable(getActivity(), R.drawable.default_background);
-//        mMetrics = new DisplayMetrics();
-//        getActivity().getWindowManager().getDefaultDisplay().getMetrics(mMetrics);
-    }
-
     private void setupUIElements() {
-        // setBadgeDrawable(getActivity().getResources().getDrawable(
-        // R.drawable.videos_by_google_banner));
-        setTitle("Cloudwalker"); // Badge, when set, takes precedent
-        // over title
+        setTitle("Cloudwalker");
         setHeadersState(HEADERS_ENABLED);
         setHeadersTransitionOnBackEnabled(true);
-
-        // set fastLane (or headers) background color
         setBrandColor(ContextCompat.getColor(getActivity(), R.color.fastlane_background));
-        // set search icon color
         setSearchAffordanceColor(ContextCompat.getColor(getActivity(), R.color.search_opaque));
     }
 
@@ -154,31 +113,6 @@ public class MainFragment extends BrowseFragment {
         });
 
         setOnItemViewClickedListener(new ItemViewClickedListener());
-        setOnItemViewSelectedListener(new ItemViewSelectedListener());
-    }
-
-//    private void updateBackground(String uri) {
-//        int width = mMetrics.widthPixels;
-//        int height = mMetrics.heightPixels;
-//        Glide.with(getActivity())
-//                .load(uri)
-//                .centerCrop()
-//                .error(mDefaultBackground)
-//                .into(new SimpleTarget<Drawable>() {
-//                    @Override
-//                    public void onResourceReady(@NonNull Drawable resource, @Nullable Transition<? super Drawable> transition) {
-//                        mBackgroundManager.setDrawable(resource);
-//                    }
-//                });
-//        mBackgroundTimer.cancel();
-//    }
-
-    private void startBackgroundTimer() {
-//        if (null != mBackgroundTimer) {
-//            mBackgroundTimer.cancel();
-//        }
-//        mBackgroundTimer = new Timer();
-//        mBackgroundTimer.schedule(new UpdateBackgroundTask(), BACKGROUND_UPDATE_DELAY);
     }
 
     private final class ItemViewClickedListener implements OnItemViewClickedListener {
@@ -206,33 +140,6 @@ public class MainFragment extends BrowseFragment {
                     Toast.makeText(getActivity(), ((String) item), Toast.LENGTH_SHORT).show();
                 }
             }
-        }
-    }
-
-    private final class ItemViewSelectedListener implements OnItemViewSelectedListener {
-        @Override
-        public void onItemSelected(
-                Presenter.ViewHolder itemViewHolder,
-                Object item,
-                RowPresenter.ViewHolder rowViewHolder,
-                Row row) {
-//            if (item instanceof MovieTile) {
-//                mBackgroundUri = ((MovieTile) item).getBackground();
-//                startBackgroundTimer();
-//            }
-        }
-    }
-
-    private class UpdateBackgroundTask extends TimerTask {
-
-        @Override
-        public void run() {
-//            mHandler.post(new Runnable() {
-//                @Override
-//                public void run() {
-//                    updateBackground(mBackgroundUri);
-//                }
-//            });
         }
     }
 }
